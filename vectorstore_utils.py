@@ -23,22 +23,36 @@ def load_or_build_vectorstore(debug=False):
 
     # Load existing index
     if os.path.exists(faiss_index_path):
+        if debug:
+            print("📦 Loading existing FAISS index from disk...")
         return FAISS.load_local(faiss_index_path, embeddings, allow_dangerous_deserialization=True)
 
     # Load and parse DOCX files
     docs = []
+    print("📄 Scanning source_content/ for DOCX files...")
     for file in os.listdir("source_content"):
         if file.endswith(".docx"):
             full_path = os.path.join("source_content", file)
             text = extract_text_from_docx(full_path)
-            if text:
+            print(f"📘 {file}: {len(text)} characters extracted")
+            if text.strip():
                 docs.append(Document(page_content=text, metadata={"source": file}))
+    
+    print(f"✅ Loaded {len(docs)} documents.")
 
     # Split into chunks
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = splitter.split_documents(docs)
+    print(f"✂️ Split into {len(chunks)} chunks.")
+
+    # 🚨 Fail fast if chunking failed
+    if not chunks:
+        raise ValueError("❌ No content chunks were generated. Check if DOCX files are formatted with readable text.")
 
     # Build and save FAISS index
     vectorstore = FAISS.from_documents(chunks, embeddings)
     vectorstore.save_local(faiss_index_path)
+
+    if debug:
+        print("✅ FAISS index built and saved.")
     return vectorstore
