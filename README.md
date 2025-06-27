@@ -1,4 +1,4 @@
-# 🎓 Teaching Assistant AI – GPT-4o-Powered Learning Support
+# 🎓 Conversational Teaching Assistant – GPT-4o-Powered Learning Support
 
 An interactive AI assistant embedded in digital courses to support learners with real-time, context-aware answers. This assistant draws directly from _Teaching in a Digital Age_ by Dr. Tony Bates—providing accurate, thoughtful responses without hallucinations, fluff, or filler.
 
