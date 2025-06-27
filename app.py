@@ -28,9 +28,9 @@ if "chat_history" not in st.session_state:
 
 email = st.query_params.get("email", "anonymous")
 
-st.set_page_config(page_title="Ask Your Golf Coach", page_icon="🏌️")
-st.markdown("## Ask Your Golf Coach")
-st.markdown("<div style='color: grey; font-size: 0.95rem;'>Get no-BS advice straight from Cameron Strachan’s coaching philosophy—focused, natural, and grounded in real experience.</div>", unsafe_allow_html=True)
+st.set_page_config(page_title="Chat with the Book", page_icon="🎓")
+st.markdown("## Ask about Teaching in a Digital Age")
+st.markdown("<div style='color: grey; font-size: 0.95rem;'>Get answers from Dr. Tony Bates' book.</div>", unsafe_allow_html=True)
 
 # Load system prompt
 with open("initial_prompt.txt", "r", encoding="utf-8") as f:
@@ -62,10 +62,10 @@ chain = (
     | llm
 )
 
-query = st.chat_input("💬 Ask a golf question...")
+query = st.chat_input("💬 Ask a digital learning question...")
 
 if st.session_state.chat_history:
-    with st.expander("**:grey[Full Chat History]**", expanded=True):  # no label shown
+    with st.expander("**:grey[Chat History]**", expanded=True):  # no label shown
         for role, msg in st.session_state.chat_history:
             with st.chat_message(role):
                 st.markdown(msg)
@@ -82,7 +82,7 @@ if query:
     docs = retriever.invoke(query)
     context = "\n\n".join([doc.page_content for doc in docs])
 
-    with st.spinner("Thinking like Cameron..."):
+    with st.spinner("Thinking like Dr. Tony Bates..."):
         try:
             answer = chain.invoke({
                 "context": context,
@@ -98,12 +98,6 @@ if query:
     st.session_state.chat_history.append(("user", query))
     st.session_state.chat_history.append(("assistant", answer))
     st.session_state.chat_history = st.session_state.chat_history[-10:]
-
-    # Show sources
-    with st.expander("Sources"):
-        for i, doc in enumerate(docs):
-            source = doc.metadata.get("source", f"Source {i+1}")
-            st.markdown(f"**📄 {source}**\n\n{doc.page_content}")
 
     # Log Q&A to webhook
     log_to_n8n(query, answer, email)
