@@ -7,6 +7,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableMap
 from vectorstore_utils import load_or_build_vectorstore
 
+if not os.path.exists("initial_prompt.txt"):
+    st.error("🚨 Missing initial_prompt.txt — please commit it to your repo.")
+    st.stop()
+
+if not os.path.exists("source_content") or not any(f.endswith(".docx") for f in os.listdir("source_content")):
+    st.error("🚨 No .docx files found in source_content/.")
+    st.stop()
+
 # --- Webhook logging function ---
 def log_to_n8n(question, answer, user_email="anonymous"):
     try:
