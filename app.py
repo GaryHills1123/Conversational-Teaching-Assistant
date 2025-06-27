@@ -29,7 +29,7 @@ if "chat_history" not in st.session_state:
 email = st.query_params.get("email", "anonymous")
 
 st.set_page_config(page_title="Chat with the Book", page_icon="🎓")
-st.markdown("## Ask about Teaching in a Digital Age")
+st.markdown("## Ask about *Teaching in a Digital Age*")
 st.markdown("<div style='color: grey; font-size: 0.95rem;'>Get answers from Dr. Tony Bates' book.</div>", unsafe_allow_html=True)
 
 # Load system prompt
