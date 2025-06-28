@@ -1,4 +1,7 @@
+
 import os
+import time
+import psutil
 from dotenv import load_dotenv
 load_dotenv()
 from langchain_community.embeddings import OpenAIEmbeddings
@@ -10,7 +13,9 @@ from docx import Document as DocxDocument
 def extract_text_from_docx(path):
     """Extracts text from a .docx file using python-docx."""
     try:
+        print(f"📂 Opening DOCX: {path}")
         doc = DocxDocument(path)
+        print(f"📝 Paragraph count: {len(doc.paragraphs)}")
         return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
     except Exception as e:
         print(f"❌ Failed to extract text from {path}: {e}")
@@ -27,32 +32,40 @@ def load_or_build_vectorstore(debug=False):
             print("📦 Loading existing FAISS index from disk...")
         return FAISS.load_local(faiss_index_path, embeddings, allow_dangerous_deserialization=True)
 
-    # Load and parse DOCX files
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,
+        chunk_overlap=50
+    )
+
     docs = []
     print("📄 Scanning source_content/ for DOCX files...")
     for file in os.listdir("source_content"):
         if file.endswith(".docx"):
             full_path = os.path.join("source_content", file)
+
+            if os.path.getsize(full_path) > 2_000_000:  # 2 MB size guard
+                print(f"⛔ Skipping {file} – exceeds 2MB limit for Render runtime.")
+                continue
+
             text = extract_text_from_docx(full_path)
             print(f"📘 {file}: {len(text)} characters extracted")
+
             if text.strip():
-                docs.append(Document(page_content=text, metadata={"source": file}))
-    
-    print(f"✅ Loaded {len(docs)} documents.")
+                chunks = text_splitter.create_documents([text])
+                print(f"🧩 Split into {len(chunks)} chunks.")
+                for chunk in chunks:
+                    docs.append(chunk)
+                    time.sleep(0.2)  # Sleep to reduce memory pressure
 
-    # Split into chunks
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = splitter.split_documents(docs)
-    print(f"✂️ Split into {len(chunks)} chunks.")
+            print(f"🧠 RAM used: {psutil.Process().memory_info().rss / 1024 ** 2:.2f} MB")
 
-    # 🚨 Fail fast if chunking failed
-    if not chunks:
-        raise ValueError("❌ No content chunks were generated. Check if DOCX files are formatted with readable text.")
+    if not docs:
+        print("⚠️ No documents were created. Your .docx may be empty or unsupported.")
+        return None
 
-    # Build and save FAISS index
-    vectorstore = FAISS.from_documents(chunks, embeddings)
+    print("⚙️ Creating new FAISS index from parsed documents...")
+    vectorstore = FAISS.from_documents(docs, embeddings)
     vectorstore.save_local(faiss_index_path)
+    print("✅ FAISS index saved.")
 
-    if debug:
-        print("✅ FAISS index built and saved.")
     return vectorstore
