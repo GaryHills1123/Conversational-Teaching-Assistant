@@ -1,7 +1,6 @@
 
 import os
 import time
-import psutil
 from dotenv import load_dotenv
 load_dotenv()
 from langchain_community.embeddings import OpenAIEmbeddings
@@ -56,6 +55,7 @@ def load_or_build_vectorstore(debug=False):
                 for chunk in chunks:
                     docs.append(chunk)
                     time.sleep(0.2)  # Sleep to reduce memory pressure
+
     if not docs:
         print("⚠️ No documents were created. Your .docx may be empty or unsupported.")
         return None
