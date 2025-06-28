@@ -56,9 +56,6 @@ def load_or_build_vectorstore(debug=False):
                 for chunk in chunks:
                     docs.append(chunk)
                     time.sleep(0.2)  # Sleep to reduce memory pressure
-
-            print(f"🧠 RAM used: {psutil.Process().memory_info().rss / 1024 ** 2:.2f} MB")
-
     if not docs:
         print("⚠️ No documents were created. Your .docx may be empty or unsupported.")
         return None
