@@ -10,7 +10,7 @@ from vectorstore_utils import load_or_build_vectorstore
 # --- Webhook logging function ---
 def log_to_n8n(question, answer, user_email="anonymous"):
     try:
-        webhook_url = "https://garythills.app.n8n.cloud/webhook/storeQA"
+        webhook_url = "https://garythills.app.n8n.cloud/webhook/storeBookQA"
         auth = ("streamlit", "g4ryR0cks@2025!")
         payload = {
             "question": question,
