@@ -35,7 +35,7 @@ tab_intro, tab_chat = st.tabs(["📖 How It Works", "🧠 Ask the Assistant"])
 with tab_intro:
     col1, col2 = st.columns([1, 2])
     with col1:
-        st.image("bates-book-cover.jpg", caption="Dr. Tony Bates", width=200)
+        st.image("./bates-book-cover.jpg", caption="Dr. Tony Bates", width=200)
     with col2:
         st.markdown('## Ask about <cite>Teaching in a Digital Age</cite>', unsafe_allow_html=True)
         st.markdown("<div style='color: grey; font-size: 0.95rem;'>Welcome to your assistant for Dr. Tony Bates’ open-access book.</div>", unsafe_allow_html=True)
