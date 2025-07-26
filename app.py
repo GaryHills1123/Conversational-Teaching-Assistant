@@ -1,4 +1,5 @@
 import os
+import platform
 import streamlit as st
 import requests
 from datetime import datetime
@@ -26,27 +27,46 @@ def log_to_n8n(question, answer, user_email="anonymous"):
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+if "temperature" not in st.session_state:
+    st.session_state.temperature = 0.3  # Default temperature
+
 email = st.query_params.get("email", "anonymous")
 
 st.set_page_config(page_title="Teaching Assistant", page_icon="🎓")
-tab_intro, tab_chat = st.tabs(["📖 How It Works", "🧠 Ask the Assistant"])
+tab_intro, tab_chat, tab_settings, tab_dashboard = st.tabs(
+    ["📖 How It Works", "🧠 Ask the Assistant", "⚙️ Settings", "📊 Dashboard"]
+)
 
 # --- 📖 How It Works tab ---
 with tab_intro:
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.image("./bates-book-cover.jpg", caption="Dr. Tony Bates", width=200)
-    with col2:
-        st.markdown('## Ask about <cite>Teaching in a Digital Age</cite>', unsafe_allow_html=True)
-        st.markdown("<div style='color: grey; font-size: 0.95rem;'>Welcome to your assistant for Dr. Tony Bates’ open-access book.</div>", unsafe_allow_html=True)
-        st.markdown("""
-💡 You can:
-- Ask questions about digital pedagogy and online learning  
-- Explore practical guidance from Tony Bates’ book  
-- Get smart, summarized answers grounded in the text  
+    st.markdown("## 📖 How It Works")
 
-👉 Switch to the 🧠 **Ask the Assistant** tab to begin a conversation.
+    st.image("./bates-book-cover.jpg", width=150)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### 🎓 Ask about *Teaching in a Digital Age*")
+        st.write("""
+Welcome to your assistant for Dr. Tony Bates’ open-access book on digital teaching and learning.
+
+Use it to explore teaching strategies, design principles, and practical insights—straight from the source.
         """)
+
+    with col2:
+        st.markdown("### 💡 You Can:")
+        st.markdown("""
+- **Ask questions** about digital pedagogy and online learning  
+- **Explore practical guidance** from Tony Bates’ book  
+- **Get smart, summarized answers** grounded in the text  
+- **Adjust creativity** with the response style slider  
+- **Check system info** in the new app dashboard  
+        """)
+
+    st.divider()
+    st.markdown("👉 Switch to the **🧠 Ask the Assistant** tab to begin your conversation.")
+
+
 
 # --- 🧠 Ask the Assistant tab ---
 with tab_chat:
@@ -71,7 +91,8 @@ Answer:"""
 
     vectorstore = load_or_build_vectorstore(debug=False)
     retriever = vectorstore.as_retriever()
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=st.session_state.temperature)
+
 
     chain = (
         RunnableMap({
@@ -121,3 +142,94 @@ Answer:"""
 
         # Log Q&A
         log_to_n8n(query, answer, email)
+
+# --- ⚙️ Settings tab ---
+with tab_settings:
+    st.markdown("### 🔥 Precision vs. Creativity")
+
+    st.markdown(
+        """
+        The **temperature** setting controls how _creative_ or _focused_ the assistant's responses are.
+
+        - `0.0` = Deterministic and fact-based (good for technical Q&A)  
+        - `0.3–0.6` = Balanced (default range)  
+        - `1.0` = Creative, exploratory, or speculative (risk of fluff)  
+
+        Use lower values for **accuracy**, higher values for **brainstorming** or **big-picture thinking**.
+        """
+    )
+
+    st.session_state.temperature = st.slider(
+        "Model Temperature",
+        min_value=0.0,
+        max_value=1.0,
+        value=st.session_state.temperature,
+        step=0.05,
+        help="Controls randomness: 0 = focused, 1 = imaginative"
+    )
+
+    st.caption(f"🔧 Current temperature: `{st.session_state.temperature}`")
+
+# --- 📊 Dashboard tab ---
+with tab_dashboard:
+    st.markdown("## 📊 App Dashboard")
+    st.markdown("A quick snapshot of your environment, assistant configuration, and index status.")
+
+    col1, col2 = st.columns(2)
+
+    # --- Column 1: Software Versions + Index Status ---
+    with col1:
+        st.markdown("### 🧪 Software Versions")
+        st.markdown("Shows which versions of key components are currently running.")
+
+        import platform
+        try:
+            import streamlit as stlib
+            st_version = stlib.__version__
+        except:
+            st_version = "not found"
+        try:
+            import langchain
+            lc_version = langchain.__version__
+        except:
+            lc_version = "not found"
+        try:
+            import openai
+            openai_version = openai.__version__
+        except:
+            openai_version = "not found"
+        try:
+            import faiss
+            faiss_version = faiss.__version__
+        except:
+            faiss_version = "not found"
+
+        software_data = {
+            "Component": ["Python", "Streamlit", "LangChain", "OpenAI", "FAISS"],
+            "Version": [
+                platform.python_version(),
+                st_version,
+                lc_version,
+                openai_version,
+                faiss_version
+            ]
+        }
+        st.table(software_data)
+
+        st.markdown("### 📚 Index Status")
+        st.markdown("Status of the local content index used for context-aware responses.")
+        index_info_data = {
+            "Metric": ["Content Folder", "Files Loaded", "LLM Temperature", "LLM Model"],
+            "Value": ["./source_content", "1", str(st.session_state.temperature), "gpt-4o"]
+        }
+        st.table(index_info_data)
+
+    # --- Column 2: App Info ---
+    with col2:
+        st.markdown("### 📦 App Info")
+        st.markdown("Details about this specific build of the assistant.")
+        app_info_data = {
+            "Property": ["App Version", "Release Date", "Author", "Mode"],
+            "Value": ["1.2", "2025-07-25", "Gary Hills", "Production"]
+        }
+        st.table(app_info_data)
