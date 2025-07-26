@@ -173,12 +173,12 @@ with tab_settings:
 
 # --- 📊 Dashboard tab ---
 with tab_dashboard:
-    import sys  # Needed for sys.executable
+    import sys  # Required for sys.executable
 
     st.markdown("## 📊 App Dashboard")
     st.markdown("A quick snapshot of your environment, assistant configuration, and index status.")
 
-    # --- Top row: Software Versions + Index Status ---
+    # --- Top Row: Software Versions + Index Status ---
     col1, col2 = st.columns(2)
 
     with col1:
@@ -206,7 +206,7 @@ with tab_dashboard:
         except:
             faiss_version = "not found"
 
-        software_data = {
+        st.table({
             "Component": ["Python", "Streamlit", "LangChain", "OpenAI", "FAISS"],
             "Version": [
                 platform.python_version(),
@@ -215,37 +215,38 @@ with tab_dashboard:
                 openai_version,
                 faiss_version
             ]
-        }
-        st.table(software_data)
+        })
 
     with col2:
         st.markdown("### 📚 Index Status")
         st.markdown("Status of the local content index used for context-aware responses.")
-        index_info_data = {
+        st.table({
             "Metric": ["Content Folder", "Files Loaded", "LLM Temperature", "LLM Model"],
             "Value": ["./source_content", "1", str(st.session_state.temperature), "gpt-4o"]
-        }
-        st.table(index_info_data)
+        })
 
-    # --- Bottom row: Runtime Environment + App Info ---
+    # --- Bottom Row: Runtime Environment + App Info ---
     st.divider()
     col3, col4 = st.columns(2)
 
     with col3:
         st.markdown("### 🖥️ Runtime Environment")
         st.markdown("Displays basic system info for nerdy inspection.")
-
-        st.markdown(f"- **OS:** `{platform.system()} {platform.release()}`")
-        st.markdown(f"- **Architecture:** `{platform.machine()}`")
-        st.markdown(f"- **Processor:** `{platform.processor()}`")
-        st.markdown(f"- **Python Executable:** `{sys.executable}`")
-        st.markdown(f"- **Working Directory:** `{os.getcwd()}`")
+        st.table({
+            "Metric": ["OS", "Architecture", "Processor", "Python Executable", "Working Directory"],
+            "Value": [
+                f"{platform.system()} {platform.release()}",
+                platform.machine(),
+                platform.processor(),
+                sys.executable,
+                os.getcwd()
+            ]
+        })
 
     with col4:
         st.markdown("### 📦 App Info")
         st.markdown("Details about this specific build of the assistant.")
-        app_info_data = {
+        st.table({
             "Property": ["App Version", "Release Date", "Author", "Mode"],
             "Value": ["1.2", "2025-07-25", "Gary Hills", "Production"]
-        }
-        st.table(app_info_data)
+        })
