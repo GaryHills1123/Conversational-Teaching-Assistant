@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 import streamlit as st
 import requests
 from datetime import datetime
@@ -172,17 +173,18 @@ with tab_settings:
 
 # --- 📊 Dashboard tab ---
 with tab_dashboard:
+    import sys  # Needed for sys.executable
+
     st.markdown("## 📊 App Dashboard")
     st.markdown("A quick snapshot of your environment, assistant configuration, and index status.")
 
+    # --- Top row: Software Versions + Index Status ---
     col1, col2 = st.columns(2)
 
-    # --- Column 1: Software Versions + Index Status ---
     with col1:
         st.markdown("### 🧪 Software Versions")
         st.markdown("Shows which versions of key components are currently running.")
 
-        import platform
         try:
             import streamlit as stlib
             st_version = stlib.__version__
@@ -216,6 +218,7 @@ with tab_dashboard:
         }
         st.table(software_data)
 
+    with col2:
         st.markdown("### 📚 Index Status")
         st.markdown("Status of the local content index used for context-aware responses.")
         index_info_data = {
@@ -224,8 +227,21 @@ with tab_dashboard:
         }
         st.table(index_info_data)
 
-    # --- Column 2: App Info ---
-    with col2:
+    # --- Bottom row: Runtime Environment + App Info ---
+    st.divider()
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown("### 🖥️ Runtime Environment")
+        st.markdown("Displays basic system info for nerdy inspection.")
+
+        st.markdown(f"- **OS:** `{platform.system()} {platform.release()}`")
+        st.markdown(f"- **Architecture:** `{platform.machine()}`")
+        st.markdown(f"- **Processor:** `{platform.processor()}`")
+        st.markdown(f"- **Python Executable:** `{sys.executable}`")
+        st.markdown(f"- **Working Directory:** `{os.getcwd()}`")
+
+    with col4:
         st.markdown("### 📦 App Info")
         st.markdown("Details about this specific build of the assistant.")
         app_info_data = {
